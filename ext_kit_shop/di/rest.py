@@ -21,6 +21,7 @@ from ext_kit_shop.di.common import CommonDI
 from ext_kit_shop.rest.auth.auth_router import AuthRouter
 from ext_kit_shop.rest.common import RoutsCommon
 from ext_kit_shop.utils.db_helper import DBHelper
+from ext_kit_shop.utils.kit_shop_manager import ApiAccess, KitShopManager
 
 __all__ = ("RestDI",)
 
@@ -46,7 +47,10 @@ def init_rest_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[Any]:  # noqa: ARG001, RUF029
         # Ожидание запуска сервисов от которых зависит приложение
-        logger.info("Приложение инициализировано", extra={"settings": settings.model_dump_json()})
+        logger.info(
+            "Приложение инициализировано",
+            extra=settings.model_dump(),
+        )
         yield
 
     app: CustomFastAPIType = cast(
@@ -72,7 +76,7 @@ def init_rest_app(
 
         return response
 
-    logger.info("Зарегистрированные routs", extra={"routs": app.router.routes})
+    logger.info("Зарегистрированные routs", extra={"routs": str(app.router.routes)})
     return app
 
 
@@ -104,15 +108,23 @@ class RestDI(containers.DeclarativeContainer):
         url=common_di.settings.provided().DB_URL,
     )
 
-    # rt_manger = providers.Singleton(
-    #     RTManger,
-    #     logger=common_di.logger,
-    #     db_helper=db_helper,
-    # )
+    api_access = providers.Resource(
+        ApiAccess,
+        company_id=common_di.settings.provided().COMPANY_ID,
+        user_login=common_di.settings.provided().USER_LOGIN,
+        password=common_di.settings.provided().PASSWORD,
+    )
+
+    kit_shop_manger = providers.Singleton(
+        KitShopManager,
+        db_helper=db_helper,
+        logger=common_di.logger,
+        api_access=api_access,
+    )
 
     auth_router = providers.Singleton(
         AuthRouter,
-        # rt_manger=rt_manger,
+        kit_shop_manger=kit_shop_manger,
         prefix="/auth",
         tags=["auth"],
         db_helper=db_helper,

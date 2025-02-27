@@ -14,6 +14,7 @@ from fastapi import APIRouter
 
 from ext_kit_shop.models.request import BadResponse, GoodResponse
 from ext_kit_shop.utils.db_helper import DBHelper
+from ext_kit_shop.utils.kit_shop_manager import KitShopManager
 
 
 class RoutsCommon(ABC):
@@ -22,6 +23,7 @@ class RoutsCommon(ABC):
     def __init__(
         self,
         db_helper: DBHelper,
+        kit_shop_manger: KitShopManager,
         prefix: str = "",
         tags: list[str | Enum] | None = None,
         logger: Logger | None = None,
@@ -33,6 +35,7 @@ class RoutsCommon(ABC):
         self._router = APIRouter(prefix=prefix, tags=tags)
         self.logger = logger or getLogger(__name__)
         self.db_helper = db_helper
+        self.kit_shop_manger = kit_shop_manger
 
     def add_route(self, path: str, endpoint: Callable[..., Any], method: str = "GET") -> None:
         """

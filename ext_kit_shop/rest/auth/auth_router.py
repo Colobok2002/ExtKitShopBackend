@@ -4,9 +4,12 @@
 .. moduleauthor:: ilya Barinov <i-barinov@it-serv.ru>
 """
 
+from datetime import datetime, timedelta
+from typing import Any
+
 from pydantic import BaseModel
 
-from ext_kit_shop.models.db import ApiAccess, User
+from ext_kit_shop.models.db import User
 from ext_kit_shop.models.request import BadResponse, GoodResponse
 from ext_kit_shop.rest.common import RoutsCommon
 
@@ -34,7 +37,7 @@ class AuthRouter(RoutsCommon):
         """Функция назначения routs"""
         self._router.add_api_route("/login", self.login, methods=["GET"])
         self._router.add_api_route("/regist", self.regist, methods=["POST"])
-        self._router.add_api_route("/create_api_access", self.create_api_access, methods=["POST"])
+        self._router.add_api_route("/test-ks-manager", self.test_ks_manager, methods=["GET"])
 
     async def regist(self, request: UserCreateRequest) -> GoodResponse:
         with self.db_helper.sessionmanager() as session:
@@ -48,23 +51,6 @@ class AuthRouter(RoutsCommon):
             session.add(user)
             session.commit()
         return GoodResponse(message="User created successfully")
-
-    async def create_api_access(
-        self,
-        request: ApiAccessCreateRequest,
-    ) -> GoodResponse:
-        with self.db_helper.sessionmanager() as session:
-            api_access = ApiAccess(
-                company_id=request.company_id,
-                user_login=request.user_login,
-                password=request.password,
-            )
-            session.add(api_access)
-            session.commit()
-            api_access_id = api_access.id
-        return GoodResponse(
-            message="API access created successfully", data={"api_access": api_access_id}
-        )
 
     # Роут для авторизации пользователя
     async def login(
@@ -83,3 +69,16 @@ class AuthRouter(RoutsCommon):
 
             token = user.create_token(session)
         return GoodResponse(message=f"Login successful. Token: {token}")
+
+    async def test_ks_manager(self) -> Any:
+        to_date = datetime.now()
+        up_date = to_date - timedelta(days=1)
+
+        # Форматируем даты
+        up_date_str = up_date.strftime("%d.%m.%Y 00:00:00")
+        to_date_str = to_date.strftime("%d.%m.%Y 23:59:59")
+
+        # return self.kit_shop_manger._get_sales_ks(up_date_str, to_date_str)
+        # return self.kit_shop_manger._get_sales_about_ks(18390354)
+        # return self.kit_shop_manger.get_sales_by_period(up_date_str, to_date_str)
+        return self.kit_shop_manger.get_users_info()

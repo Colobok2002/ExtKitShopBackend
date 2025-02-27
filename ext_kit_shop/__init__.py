@@ -5,5 +5,5 @@ __all__ = (
     "__version__",
 )
 
-__appname__ = "app_name"
+__appname__ = "ext_kit_shop"
 __version__ = _version.get_versions()["version"]

@@ -5,16 +5,13 @@
 """
 
 import logging
-from typing import Any
 
-import yaml
 from dependency_injector import containers, providers
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from rich.console import Console
-from rich.syntax import Syntax
 
 from ext_kit_shop import __appname__
+from ext_kit_shop.utils.logger import StderrHandler, StdoutHandler, get_logger
 
 
 class Settings(BaseSettings):
@@ -29,11 +26,15 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = Field()
     JWT_SECRET_KEY: str = Field()
 
+    # API
+    COMPANY_ID: int = Field()
+    USER_LOGIN: str = Field()
+    PASSWORD: str = Field()
+
     DB_URL: str | None = None
 
     @field_validator("DB_URL", mode="before")
-    @staticmethod
-    def assemble_db_connection(_v: str, values: ValidationInfo) -> str:
+    def assemble_db_connection(cls, _v: str, values: ValidationInfo) -> str:
         """Собирает URL для подключения к PostgreSQL."""
         return (
             f"postgresql://{values.data['POSTGRES_USER']}:{values.data['POSTGRES_PASSWORD']}@"
@@ -47,69 +48,12 @@ class Settings(BaseSettings):
     )
 
 
-class SensitiveFormatter(logging.Formatter):
-    """Форматтер логов в YAML с исключением ненужных полей."""
-
-    EXCLUDED_KEYS = {  # noqa: RUF012
-        "args",
-        "created",
-        "exc_info",
-        "exc_text",
-        "filename",
-        "levelno",
-        "module",
-        "msecs",
-        "msg",
-        "pathname",
-        "process",
-        "processName",
-        "relativeCreated",
-        "stack_info",
-        "thread",
-        "threadName",
-        "lineno",
-        "logger",
-        "file",
-        "function",
-        "levelname",
-        "taskName",
-    }
-
-    console = Console()
-
-    def format(self, record: logging.LogRecord) -> Any:  # noqa: D102
-        log_entry = {
-            "timestamp": self.formatTime(record),
-            "level": record.levelname,
-            "logger": record.name,
-            "line": record.lineno,
-            "message": record.getMessage(),
-        }
-
-        for key, value in record.__dict__.items():
-            if key not in self.EXCLUDED_KEYS and not key.startswith("_"):
-                try:
-                    yaml.dump(value)
-                    log_entry[key] = value
-                except Exception:  # noqa: BLE001
-                    log_entry[key] = str(value)
-
-        yaml_text = yaml.dump(log_entry, default_flow_style=False, allow_unicode=True)
-        syntax = Syntax(yaml_text, "yaml", theme="monokai", line_numbers=False)
-        self.console.print(syntax)
-
-        return ""
-
-
 def setup_logger(log_level: str) -> logging.Logger:
     """Настройка логгера с YAML-форматированием и поддержкой dynamic extra."""
-    logger = logging.getLogger(__appname__)
+    logger = get_logger(__appname__)
     logger.setLevel(log_level.upper())
-
-    handler = logging.StreamHandler()
-    handler.setFormatter(SensitiveFormatter())
-
-    logger.addHandler(handler)
+    logger.addHandler(StdoutHandler())
+    logger.addHandler(StderrHandler())
     return logger
 
 

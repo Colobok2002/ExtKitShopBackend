@@ -4,10 +4,11 @@
 .. moduleauthor:: ilya Barinov <i-barinov@it-serv.ru>
 """
 
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, ForeignKey, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
+from sqlalchemy import BigInteger, Boolean, DateTime, Float, Integer, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 from ext_kit_shop.utils.jwt_helper import JWTHelper
 
@@ -31,16 +32,6 @@ class User(Base):
     password: Mapped[str] = mapped_column(String, nullable=False)
     first_name: Mapped[str] = mapped_column(String, nullable=True)
     last_name: Mapped[str] = mapped_column(String, nullable=True)
-
-    # TODO: Вынести в компанию
-    # user_type: Mapped[str] = mapped_column(String, nullable=True)  # Тип пользователя
-    # company_name: Mapped[str] = mapped_column(String, nullable=True)  # Название компании
-    # inn: Mapped[str] = mapped_column(String, nullable=True)  # ИНН компании
-
-    api_access_id: Mapped[int] = mapped_column(ForeignKey("api_access.id"), nullable=True)
-    api_access: Mapped["ApiAccess"] = relationship(
-        "ApiAccess", back_populates="user", uselist=False
-    )
 
     def create_token(self, session: Session) -> str:
         """
@@ -67,13 +58,19 @@ class User(Base):
     get_payload = verify_token
 
 
-class ApiAccess(Base):
-    """Таблица с API доступами"""
+class Sale(Base):
+    """Модель для хранения данных о продаже"""
 
-    __tablename__ = "api_access"
+    __tablename__ = "sales"
 
-    company_id: Mapped[int] = mapped_column(String, nullable=False)
-    user_login: Mapped[str] = mapped_column(String, nullable=False)
-    password: Mapped[str] = mapped_column(String, nullable=False)
-
-    user: Mapped["User"] = relationship("User", back_populates="api_access")
+    sale_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    device_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    shop_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    company_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    sum: Mapped[float] = mapped_column(Float, nullable=False)
+    sale_date_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    server_date_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    pay_type: Mapped[int] = mapped_column(Integer, nullable=False)
+    pay_details: Mapped[str] = mapped_column(String, nullable=True)
+    is_fiscal: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    customer_id: Mapped[int] = mapped_column(Integer, nullable=True)
