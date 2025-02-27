@@ -1,5 +1,5 @@
 [project]
-name = "app_name"
+name = "ext_kit_shop"
 version = "0.1.0"
 description = ""
 authors = [{ name = "Ilya Barinov", email = "ilya.bv.2002@bk.ru" }]
@@ -15,6 +15,19 @@ dependencies = [
     "fastapi-offline (>=1.7.3,<2.0.0)",
     "pyyaml (>=6.0.2,<7.0.0)",
     "rich (>=13.9.4,<14.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "types-requests (>=2.32.0.20241016,<3.0.0.0)",
+    "versioner (>=0.0.7,<0.0.8)",
+    "versioneer (>=0.29,<0.30)",
+    "sqlalchemy[mypy] (>=2.0.38,<3.0.0)",
+    "alembic (>=1.14.1,<2.0.0)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "pyjwt (>=2.10.1,<3.0.0)",
+    "types-passlib (>=1.7.7.20241221,<2.0.0.0)",
+    "python-dotenv (>=1.0.1,<2.0.0)",
+    "cryptography (>=44.0.1,<45.0.0)",
+    "passlib (>=1.7.4,<2.0.0)",
+    "websockets (>=15.0,<16.0)",
 ]
 
 
@@ -29,12 +42,7 @@ plugins = ["pydantic.mypy"]
 python_version = "3.12"
 exclude = [
     "_version.py",
-    ".coverage_html",
     ".git",
-    ".ipynb_checkpoints",
-    "build",
-    "dist",
-    "__pycache__",
     ".mypy_cache",
     ".ruff_cache",
     ".venv",
@@ -43,6 +51,7 @@ exclude = [
     "tests",
     "versioneer_docker.py",
     "versioneer.py",
+    
 ]
 
 # включить строгую типизацию
@@ -102,7 +111,7 @@ exclude = [
 line-length = 100
 indent-width = 4
 target-version = "py312"
-namespace-packages = ["app_name"]
+namespace-packages = ["ext_kit_shop"]
 
 [tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules/
@@ -161,11 +170,9 @@ unfixable = ["ALL"]
 preview = true
 
 [tool.ruff.lint.isort]
-known-third-party = ["app_name"]
-known-first-party = ["app_name"]
+known-third-party = ["ext_kit_shop"]
+known-first-party = ["ext_kit_shop"]
 
-combine-as-imports = true
-order-by-type = false
 
 [tool.ruff.lint.pycodestyle]
 max-doc-length = 100

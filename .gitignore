@@ -173,3 +173,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 poetry.lock
+dev_alembic
+
+letsencrypt
+data
+postgres_data

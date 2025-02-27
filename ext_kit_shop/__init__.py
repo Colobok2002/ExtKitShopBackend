@@ -1,4 +1,4 @@
-from app_name import _version  # noqa: D104
+from ext_kit_shop import _version  # noqa: D104
 
 __all__ = (
     "__appname__",

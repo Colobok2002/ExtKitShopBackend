@@ -9,11 +9,12 @@ from typing import Any
 
 import yaml
 from dependency_injector import containers, providers
+from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from rich.console import Console
 from rich.syntax import Syntax
 
-from app_name import __appname__
+from ext_kit_shop import __appname__
 
 
 class Settings(BaseSettings):
@@ -21,7 +22,28 @@ class Settings(BaseSettings):
 
     LOG_LEVEL: str = "INFO"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    POSTGRES_USER: str = Field()
+    POSTGRES_PASSWORD: str = Field()
+    POSTGRES_DB: str = Field()
+    POSTGRES_HOST: str = Field()
+    POSTGRES_PORT: int = Field()
+
+    DB_URL: str | None = None
+
+    @field_validator("DB_URL", mode="before")
+    @staticmethod
+    def assemble_db_connection(_v: str, values: ValidationInfo) -> str:
+        """Собирает URL для подключения к PostgreSQL."""
+        return (
+            f"postgresql://{values.data['POSTGRES_USER']}:{values.data['POSTGRES_PASSWORD']}@"
+            f"{values.data['POSTGRES_HOST']}:{values.data['POSTGRES_PORT']}/{values.data['POSTGRES_DB']}"
+        )
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="allow",
+    )
 
 
 class SensitiveFormatter(logging.Formatter):
@@ -54,7 +76,7 @@ class SensitiveFormatter(logging.Formatter):
 
     console = Console()
 
-    def format(self, record: logging.LogRecord) -> Any:
+    def format(self, record: logging.LogRecord) -> Any:  # noqa: D102
         log_entry = {
             "timestamp": self.formatTime(record),
             "level": record.levelname,
@@ -68,7 +90,7 @@ class SensitiveFormatter(logging.Formatter):
                 try:
                     yaml.dump(value)
                     log_entry[key] = value
-                except Exception:
+                except Exception:  # noqa: BLE001
                     log_entry[key] = str(value)
 
         yaml_text = yaml.dump(log_entry, default_flow_style=False, allow_unicode=True)

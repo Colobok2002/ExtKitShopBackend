@@ -1,0 +1,65 @@
+services:
+  focalboard:
+    image: mattermost/focalboard
+    container_name: focalboard
+    restart: always
+    ports:
+      - "82:8000"
+    volumes:
+      - focalboard_data:/var/lib/focalboard
+      
+  # Сервис базы данных PostgreSQL
+  db:
+    image: postgres:latest
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    command: postgres -c 'max_connections=10000'
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Сервис приложения на Uvicorn с использованием Poetry
+  app:
+    build:
+      context: .
+      dockerfile: Bacend.Dockerfile
+    container_name: uvicorn_app
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+
+  # Nginx Proxy Manager (NPM)
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx_proxy_manager
+    restart: always
+    ports:
+      - "80:80"       # HTTP доступ
+      - "81:81"       # Порт для панели управления NPM
+      - "443:443"     # HTTPS доступ
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - app_network
+
+
+volumes:
+  postgres_data:
+  npm_data:
+  npm_letsencrypt:
+  focalboard_data:
+
+networks:
+  app_network:

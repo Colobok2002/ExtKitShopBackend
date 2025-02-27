@@ -7,10 +7,13 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
-from logging import getLogger, Logger
+from logging import Logger, getLogger
 from typing import Any
 
 from fastapi import APIRouter
+
+from ext_kit_shop.models.request import BadResponse, GoodResponse
+from ext_kit_shop.utils.db_helper import DBHelper
 
 
 class RoutsCommon(ABC):
@@ -18,6 +21,7 @@ class RoutsCommon(ABC):
 
     def __init__(
         self,
+        db_helper: DBHelper,
         prefix: str = "",
         tags: list[str | Enum] | None = None,
         logger: Logger | None = None,
@@ -28,6 +32,7 @@ class RoutsCommon(ABC):
         """
         self._router = APIRouter(prefix=prefix, tags=tags)
         self.logger = logger or getLogger(__name__)
+        self.db_helper = db_helper
 
     def add_route(self, path: str, endpoint: Callable[..., Any], method: str = "GET") -> None:
         """
@@ -42,10 +47,44 @@ class RoutsCommon(ABC):
     @abstractmethod
     def setup_routes(self) -> None:
         """Абстрактный метод для настройки маршрутов. Должен быть реализован в подклассах."""
-        pass
+        raise NotImplementedError()
 
     @property
     def router(self) -> APIRouter:
         """Возвращает роутер."""
         self.setup_routes()
         return self._router
+
+    @staticmethod
+    def good_response(
+        message: str = "Успешно",
+        data: dict[str, Any] | None = None,
+    ) -> GoodResponse:
+        """
+        Успешный результат
+
+        :param message: Сообщение, defaults to "Успешно"
+        :param data: Полезная нагрузка, defaults to None
+        :return: GoodResponse
+        """
+        return GoodResponse(
+            message=message,
+            data=data,
+        )
+
+    @staticmethod
+    def bad_response(
+        message: str = "Что то пошло не так",
+        data: dict[str, Any] | None = None,
+    ) -> BadResponse:
+        """
+        Результат с ошибкой
+
+        :param message: Сообщение, defaults to "Что то пошло не так"
+        :param data: Полезная нагрузка, defaults to None
+        :return: BadResponse
+        """
+        return BadResponse(
+            message=message,
+            data=data,
+        )
