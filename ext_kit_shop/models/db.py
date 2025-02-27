@@ -4,12 +4,9 @@
 .. moduleauthor:: ilya Barinov <i-barinov@it-serv.ru>
 """
 
-import datetime
-from enum import Enum
 from typing import Any
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String
-from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import BigInteger, ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
 from ext_kit_shop.utils.jwt_helper import JWTHelper
@@ -34,7 +31,6 @@ class User(Base):
     password: Mapped[str] = mapped_column(String, nullable=False)
     first_name: Mapped[str] = mapped_column(String, nullable=True)
     last_name: Mapped[str] = mapped_column(String, nullable=True)
-    jwt_token: Mapped[str] = mapped_column(String)
 
     # TODO: Вынести в компанию
     # user_type: Mapped[str] = mapped_column(String, nullable=True)  # Тип пользователя
@@ -80,4 +76,4 @@ class ApiAccess(Base):
     user_login: Mapped[str] = mapped_column(String, nullable=False)
     password: Mapped[str] = mapped_column(String, nullable=False)
 
-    user: Mapped["User"] = relationship("User", back_populates="api_accesses")
+    user: Mapped["User"] = relationship("User", back_populates="api_access")

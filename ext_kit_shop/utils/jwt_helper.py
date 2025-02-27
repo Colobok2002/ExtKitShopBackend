@@ -4,13 +4,12 @@
 .. moduleauthor:: ilya Barinov <i-barinov@it-serv.ru>
 """
 
-import base64
 import datetime
 import os
-import secrets
 from typing import Any
 
 import jwt
+from dotenv import load_dotenv
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -27,6 +26,7 @@ class JWTHelper:
     @classmethod
     def _get_secret_key(cls) -> str:
         """Получает секретный ключ из переменных окружения."""
+        load_dotenv()
         secret_key = os.getenv("JWT_SECRET_KEY")
         if secret_key is None:
             raise ValueError("Переменная окружения JWT_SECRET_KEY не установлена")

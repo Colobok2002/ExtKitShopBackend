@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = Field()
     POSTGRES_HOST: str = Field()
     POSTGRES_PORT: int = Field()
+    JWT_SECRET_KEY: str = Field()
 
     DB_URL: str | None = None
 
