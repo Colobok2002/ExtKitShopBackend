@@ -8,3 +8,7 @@ poetry install
 ```
 
 uvicorn  ext_kit_shop.main:app --port 8080 --reload
+
+
+
+alembic revision --autogenerate
